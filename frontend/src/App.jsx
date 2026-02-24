@@ -42,7 +42,7 @@ const HERO_IMAGE = 'https://clipart-library.com/2024/pregnant-woman-cartoon/preg
 const Navbar = ({ onAuthClick, user, onLogout, onContactClick, contactLoading, setView, currentView }) => {
   return (
     <nav className="glass-nav">
-      <div className="container py-4 flex justify-between items-center" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className="container py-4 flex justify-between items-center" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
         <ScrollLink
           to="home"
           smooth={true}
@@ -51,7 +51,7 @@ const Navbar = ({ onAuthClick, user, onLogout, onContactClick, contactLoading, s
         >
           <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--primary)', fontFamily: 'Outfit' }}>Janani</span>
         </ScrollLink>
-        <div style={{ display: 'flex', gap: '2rem' }}>
+        <div className="nav-links" style={{ display: 'flex', gap: '2rem' }}>
           {['Home', 'Demo', 'Mission'].map((item) => (
             <ScrollLink
               key={item}
@@ -90,25 +90,25 @@ const Navbar = ({ onAuthClick, user, onLogout, onContactClick, contactLoading, s
             </button>
           )}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        <div className="nav-actions" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <button
             onClick={onContactClick}
             disabled={contactLoading}
-            className="btn-primary"
+            className="btn-primary nav-contact-btn"
             style={{
-              padding: '0.5rem 1.5rem',
+              padding: '0.5rem 1.2rem',
               background: 'transparent',
               border: '2px solid var(--primary)',
               color: 'var(--primary)',
               opacity: contactLoading ? 0.7 : 1
             }}
           >
-            {contactLoading ? 'Calling...' : 'Contact Support'}
+            {contactLoading ? 'Calling...' : 'Contact'}
           </button>
           {user ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--primary)', fontWeight: '600' }}>
-                <UserIcon size={20} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <div className="nav-user-name" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--primary)', fontWeight: '600' }}>
+                <UserIcon size={18} />
                 <span>{user.name}</span>
               </div>
               <button onClick={onLogout} className="btn-primary" style={{ padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -116,7 +116,7 @@ const Navbar = ({ onAuthClick, user, onLogout, onContactClick, contactLoading, s
               </button>
             </div>
           ) : (
-            <button onClick={onAuthClick} className="btn-primary" style={{ padding: '0.5rem 1.5rem' }}>Get Started / Login</button>
+            <button onClick={onAuthClick} className="btn-primary" style={{ padding: '0.5rem 1.2rem' }}>Login</button>
           )}
         </div>
       </div>
@@ -388,7 +388,7 @@ const FeatureCard = ({ icon: Icon, title, desc, delay }) => (
 const SARVAM_API_KEY = "sk_94vvqhgo_opzIH8VOZKtoPs894jfnFGAZ";
 
 const SUPPORTED_LANGUAGES = [
-  { code: 'unknown', label: '✨ Auto Detect', native: 'स्वचालित पहचान' },
+  { code: 'unknown', label: 'Auto Detect', native: 'स्वचालित पहचान' },
   { code: 'hi-IN', label: 'Hindi', native: 'हिंदी' },
   { code: 'en-IN', label: 'English', native: 'English' },
   { code: 'pa-IN', label: 'Punjabi', native: 'ਪੰਜਾਬੀ' },
@@ -579,7 +579,7 @@ const VoiceInterface = ({ user }) => {
         body: JSON.stringify({
           inputs: [cleanText],
           target_language_code: targetLang,
-          speaker: "shreya",
+          speaker: "priya",
           model: "bulbul:v3"
         })
       });
@@ -1408,6 +1408,12 @@ function App() {
   const [contactLoading, setContactLoading] = useState(false);
   const assistantRef = React.useRef(null);
   const [assistantVisible, setAssistantVisible] = useState(false);
+  const [toast, setToast] = useState(null);
+
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 4000);
+  };
 
   // Extend window object to allow navigation from components
   useEffect(() => {
@@ -1445,10 +1451,10 @@ function App() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || 'Failed to trigger call');
       setShowContact(false); // Close modal on success
-      alert('Call initiated! You will receive a call shortly.');
+      showToast('Call initiated! You will receive a call shortly.', 'success');
     } catch (err) {
       console.error('Error triggering call:', err);
-      alert('Could not initiate call. Please check if the backend is running.');
+      showToast('Could not initiate call. Please check if the backend is running.', 'error');
     } finally {
       setContactLoading(false);
     }
@@ -1511,6 +1517,46 @@ function App() {
             user={user}
             selectedLanguage={view === 'landing' ? 'hi-IN' : 'en-IN'} // Default to Hindi for landing, English for dashboard
           />
+        )}
+      </AnimatePresence>
+
+      {/* Toast Notification */}
+      <AnimatePresence>
+        {toast && (
+          <Motion.div
+            initial={{ opacity: 0, y: -60 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -60 }}
+            transition={{ type: 'spring', damping: 20, stiffness: 300 }}
+            style={{
+              position: 'fixed',
+              top: '80px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              zIndex: 9999,
+              background: toast.type === 'error' ? '#fef2f2' : '#f0fdf4',
+              color: toast.type === 'error' ? '#dc2626' : '#16a34a',
+              border: `1px solid ${toast.type === 'error' ? '#fecaca' : '#bbf7d0'}`,
+              padding: '0.8rem 1.5rem',
+              borderRadius: '12px',
+              fontWeight: '600',
+              fontSize: '0.95rem',
+              boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              maxWidth: '90vw'
+            }}
+          >
+            <span>{toast.type === 'error' ? '⚠' : '✓'}</span>
+            {toast.message}
+            <button
+              onClick={() => setToast(null)}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', marginLeft: '0.5rem', fontSize: '1.1rem', color: 'inherit', opacity: 0.6 }}
+            >
+              ×
+            </button>
+          </Motion.div>
         )}
       </AnimatePresence>
 
