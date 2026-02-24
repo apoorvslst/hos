@@ -1451,7 +1451,7 @@ function App() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || 'Failed to trigger call');
       setShowContact(false); // Close modal on success
-      showToast('Call initiated! You will receive a call shortly.', 'success');
+      showToast('Call went to the admin.', 'success');
     } catch (err) {
       console.error('Error triggering call:', err);
       showToast('Could not initiate call. Please check if the backend is running.', 'error');
