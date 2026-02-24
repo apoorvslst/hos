@@ -18,8 +18,7 @@ build/
 .DS_Store
 
 # ─── Python/ChromaDB ───
-# vectordb/ is auto-generated from health_book.txt on startup
-backend/python/vectordb/
+# vectordb is pre-built and committed — Railway can't rebuild it (memory limit)
 
 # ─── Misc ───
 *.rar
