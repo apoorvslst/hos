@@ -21,8 +21,9 @@ build/
 .idea/
 .DS_Store
 
-# ─── Python/ChromaDB ───
-# vectordb is pre-built and committed — Railway can't rebuild it (memory limit)
+# ─── Python/ChromaDB (legacy — now using MongoDB Atlas Vector Search) ───
+vectordb/
+vectordb_users/
 
 # ─── Misc ───
 *.rar
