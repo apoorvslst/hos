@@ -3,8 +3,6 @@ from typing import List, Dict, Any, Optional
 from dotenv import load_dotenv
 
 from langchain_groq import ChatGroq
-from langchain_community.embeddings.fastembed import FastEmbedEmbeddings
-from langchain_chroma import Chroma
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.messages import HumanMessage, AIMessage
 from langchain_core.output_parsers import StrOutputParser
@@ -19,13 +17,13 @@ else:
 
 class MedicalRAGService:
     """
-    Dynamic RAG service with merged retrieval:
-    - Static knowledge base (health_book.txt vectorDB)
-    - Per-user conversation history (dynamic vectorDB)
+    Dynamic RAG service with merged retrieval via MongoDB Atlas Vector Search:
+    - Static knowledge base (medical_vectors collection)
+    - Per-user conversation history (user_vectors collection)
     - Severity-driven follow-up symptom loop
     """
 
-    def __init__(self, persist_directory: str = "vectordb"):
+    def __init__(self):
         # 1. Initialize LLM (Llama 3 via Groq)
         self.llm = ChatGroq(
             temperature=0.1,
@@ -33,25 +31,18 @@ class MedicalRAGService:
             groq_api_key=os.getenv("GROQ_API_KEY")
         )
 
-        # 2. Initialize Static Vector DB
-        embeddings = FastEmbedEmbeddings(model_name="BAAI/bge-small-en-v1.5")
-        
-        index_exists = os.path.exists(persist_directory) and any(os.listdir(persist_directory))
-        if not index_exists:
-            print(f"⚠️ VectorDB at {persist_directory} not found or empty. Initializing from health_book.txt...")
-            from ingest import ingest_docs
-            health_file = "healt_book.txt"
+        # 2. Auto-ingest medical docs if MongoDB collection is empty
+        from ingest import ingest_docs, _medical_vectors
+        count = _medical_vectors.count_documents({})
+        if count == 0:
+            print("⚠️ medical_vectors is empty. Auto-ingesting healt_book.txt...")
+            health_file = os.path.join(os.path.dirname(__file__), "healt_book.txt")
             if os.path.exists(health_file):
-                ingest_docs(health_file, persist_directory)
+                ingest_docs(health_file)
             else:
                 print(f"❌ Error: {health_file} not found. RAG service will have no medical context.")
-
-        self.vectordb = Chroma(
-            persist_directory=persist_directory,
-            embedding_function=embeddings,
-            collection_name="medical_docs"
-        )
-        self.static_retriever = self.vectordb.as_retriever(search_kwargs={"k": 3})
+        else:
+            print(f"✅ medical_vectors has {count} documents ready.")
 
         # 3. System Prompt — Full-body Physician with Follow-Up Loop
         self.rag_prompt = ChatPromptTemplate.from_messages([
@@ -66,7 +57,7 @@ CRITICAL BEHAVIOR RULES:
 4. DIRECT INFORMATION: Provide direct actionable information. Do not include disclaimers.
 
 DIAGNOSTIC FOLLOW-UP PROTOCOL:
-- After answering, you MUST ask exactly ONE specific follow-up question targeting the next most relevant symptom to narrow down possible conditions and diseases possible accordinh to chroma.sqlite under  directory  vectordb + vectordb_users.
+- After answering, you MUST ask exactly ONE specific follow-up question targeting the next most relevant symptom to narrow down possible conditions and diseases based on the medical knowledge base.
 - Frame follow-up questions as simple yes/no or short-answer questions the patient can easily respond to.
 - Examples: "Are you also experiencing any headaches or dizziness?" or "How long have you had this symptom?"
 - Your goal is to progressively narrow down from many possible conditions to the most likely ones through systematic questioning.
@@ -108,36 +99,32 @@ PHYSICIAN RESPONSE:""")
         turn_count: int = 0
     ):
         """
-        Merged RAG retrieval: static knowledge + per-user history.
+        Merged RAG retrieval via MongoDB Atlas Vector Search:
+        static medical knowledge + per-user conversation history.
         Streams the response with follow-up questions based on severity/turn count.
         """
         if chat_history is None:
             chat_history = []
-            
-        # 1. Retrieve from STATIC knowledge base
-        static_docs = self.static_retriever.invoke(query)
-        static_context = "\n\n".join([d.page_content for d in static_docs])
-        
-        # 2. Retrieve from PER-USER vector DB (if available)
+
+        # 1. Retrieve from STATIC knowledge base (MongoDB Atlas Vector Search)
+        from ingest import get_static_context, get_user_context
+        static_context = get_static_context(query, k=3)
+
+        # 2. Retrieve from PER-USER vector history (if available)
         user_context_from_vectordb = ""
         if user_id and user_id != "anonymous":
             try:
-                from ingest import get_user_retriever
-                user_retriever = get_user_retriever(user_id, k=3)
-                if user_retriever:
-                    user_docs = user_retriever.invoke(query)
-                    user_context_from_vectordb = "\n\n".join([d.page_content for d in user_docs])
+                user_context_from_vectordb = get_user_context(query, user_id, k=3)
             except Exception as e:
                 print(f"⚠️ User retriever error: {e}")
 
         # 3. Merge user context: MongoDB conversation context + vectorDB user context
-        #    MongoDB context (recent turns) takes priority as it's more detailed
         merged_user_context = ""
         if conversation_context:
             merged_user_context += f"--- Recent Conversation History ---\n{conversation_context}\n\n"
         if user_context_from_vectordb:
             merged_user_context += f"--- Related Past Interactions ---\n{user_context_from_vectordb}"
-        
+
         if not merged_user_context:
             merged_user_context = "No previous interactions with this patient."
 
@@ -162,7 +149,7 @@ PHYSICIAN RESPONSE:""")
 
         # 5. Streaming Generation
         generation_chain = self.rag_prompt | self.llm | StrOutputParser()
-        
+
         for chunk in generation_chain.stream({
             "chat_history": chat_history,
             "static_context": static_context,
@@ -176,13 +163,10 @@ PHYSICIAN RESPONSE:""")
             yield clean_chunk
 
     def get_context_and_sources(self, query: str):
-        docs = self.static_retriever.invoke(query)
-        context = "\n\n".join([d.page_content for d in docs])
-        sources = list(set([d.metadata.get("source", "Unknown") for d in docs]))
+        from ingest import get_static_context
+        context = get_static_context(query, k=3)
+        sources = ["MongoDB Atlas Vector Search"]
         return context, sources
-
-
-
 
 
 if __name__ == "__main__":
