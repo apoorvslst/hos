@@ -1,22 +1,22 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Inter:wght@300;400;500;600&display=swap');
 
 :root {
-  --primary: #b01854;
-  /* Deep Magenta */
-  --primary-light: #d81b60;
-  --secondary: #ff69b4;
-  /* Pink */
-  --accent: #fce4ec;
-  /* Soft Blush */
+  --primary: #0EA5E9;
+  /* Sky Blue */
+  --primary-light: #38BDF8;
+  --secondary: #7DD3FC;
+  /* Light Sky */
+  --accent: #E0F2FE;
+  /* Soft Sky */
   --bg-white: #ffffff;
-  --text-dark: #4a0e2e;
-  /* Dark Maroon */
-  --text-light: #8e4a6e;
+  --text-dark: #0C4A6E;
+  /* Dark Sky */
+  --text-light: #64748B;
   --glass: rgba(255, 255, 255, 0.8);
-  --glass-border: rgba(176, 24, 84, 0.1);
-  --shadow-sm: 0 2px 4px rgba(176, 24, 84, 0.05);
-  --shadow-md: 0 4px 6px rgba(176, 24, 84, 0.1);
-  --shadow-lg: 0 10px 15px rgba(176, 24, 84, 0.1);
+  --glass-border: rgba(14, 165, 233, 0.1);
+  --shadow-sm: 0 2px 4px rgba(14, 165, 233, 0.05);
+  --shadow-md: 0 4px 6px rgba(14, 165, 233, 0.1);
+  --shadow-lg: 0 10px 15px rgba(14, 165, 233, 0.1);
 }
 
 * {
@@ -116,7 +116,7 @@ h6 {
 .btn-primary:hover {
   background-color: var(--primary-light);
   transform: scale(1.05);
-  box-shadow: 0 0 20px rgba(176, 24, 84, 0.3);
+  box-shadow: 0 0 20px rgba(14, 165, 233, 0.3);
 }
 
 .gradient-text {

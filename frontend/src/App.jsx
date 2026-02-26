@@ -37,7 +37,7 @@ import Dashboard from './Dashboard';
 
 
 // Hero Image Path from the user link
-const HERO_IMAGE = 'https://clipart-library.com/2024/pregnant-woman-cartoon/pregnant-woman-cartoon-1.jpg';
+const HERO_IMAGE = '/hero-image.jpg';
 
 const Navbar = ({ onAuthClick, user, onLogout, onContactClick, contactLoading, setView, currentView }) => {
   return (
@@ -49,7 +49,7 @@ const Navbar = ({ onAuthClick, user, onLogout, onContactClick, contactLoading, s
           duration={500}
           style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
         >
-          <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--primary)', fontFamily: 'Outfit' }}>Janani</span>
+          <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--primary)', fontFamily: 'Outfit' }}>Fizician</span>
         </ScrollLink>
         <div className="nav-links" style={{ display: 'flex', gap: '2rem' }}>
           {['Home', 'Demo', 'Mission'].map((item) => (
@@ -162,9 +162,9 @@ const Hero = ({ onAuthClick, user, setView }) => {
                 position: 'absolute',
                 width: petal.size,
                 height: petal.size * 0.7,
-                background: 'linear-gradient(135deg, #ff69b4, #fce4ec)',
+                background: 'linear-gradient(135deg, #38BDF8, #E0F2FE)',
                 borderRadius: '50% 0 50% 50%',
-                boxShadow: '0 2px 5px rgba(255, 105, 180, 0.2)',
+                boxShadow: '0 2px 5px rgba(14, 165, 233, 0.2)',
               }}
             />
           ))}
@@ -192,15 +192,15 @@ const Hero = ({ onAuthClick, user, setView }) => {
               animate={{ scale: 1 }}
               transition={{ duration: 0.5 }}
             >
-              Janani
+              Fizician
             </Motion.h1>
             <h2 style={{ fontSize: '2.2rem', color: 'var(--text-dark)', marginBottom: '2rem', fontWeight: '600', lineHeight: '1.3' }}>
-              AI-Powered Multilingual Voice Assistant for <span style={{ color: 'var(--primary)' }}>Rural Maternal Care</span>
+              AI-Powered Multilingual Voice Assistant for <span style={{ color: 'var(--primary)' }}>Healthcare</span>
             </h2>
 
             <p style={{ fontSize: '1.25rem', color: 'var(--text-light)', marginBottom: '3rem', maxWidth: '550px' }}>
-              Empowering Rural Women with RAG-Based Medical Intelligence.
-              Providing life-saving prenatal care insights through simple, natural voice conversations.
+              Empowering Everyone with RAG-Based Medical Intelligence.
+              Providing reliable health insights through simple, natural voice conversations.
             </p>
 
             <div style={{ display: 'flex', gap: '1.5rem' }}>
@@ -261,7 +261,7 @@ const Hero = ({ onAuthClick, user, setView }) => {
             }}></div>
             <img
               src={HERO_IMAGE}
-              alt="Maternal Health"
+              alt="AI Health Assistant"
               style={{
                 width: '100%',
                 maxWidth: '450px',
@@ -293,7 +293,7 @@ const DemoSection = () => {
           >
             <h2 style={{ fontSize: '3rem', marginBottom: '1rem' }}>Seeing is Believing</h2>
             <p style={{ maxWidth: '700px', margin: '0 auto 4rem', color: 'var(--text-light)' }}>
-              Watch how MatriCare AI transforms the complex prenatal tracking process into a simple, natural conversation.
+              Watch how Fizician AI transforms the complex health tracking process into a simple, natural conversation.
             </p>
 
             <div style={{
@@ -486,7 +486,7 @@ const VoiceInterface = ({ user }) => {
         body: JSON.stringify({
           query: queryTerm,
           language_code: selectedLanguage === 'unknown' ? 'en-IN' : selectedLanguage,
-          patient_data: user?.patientProfile || "General pregnancy wellness query from text input.",
+          patient_data: user?.patientProfile || "General health wellness query from text input.",
           user_phone: user?.phoneNumber || '',
           user_email: user?.email || '',
           user_name: user?.name || '',
@@ -510,7 +510,7 @@ const VoiceInterface = ({ user }) => {
       }
     } catch (error) {
       console.error("Error calling RAG service:", error);
-      setResponse("Could not connect to the Janani AI service.");
+      setResponse("Could not connect to the Fizician AI service.");
       setInteractionMode('IDLE');
     } finally {
       setIsLoading(false);
@@ -658,7 +658,7 @@ const VoiceInterface = ({ user }) => {
         body: JSON.stringify({
           query: userText,
           language_code: langCode,
-          patient_data: user?.patientProfile || "Voice query from rural patient.",
+          patient_data: user?.patientProfile || "Voice query from patient.",
           user_phone: user?.phoneNumber || '',
           user_email: user?.email || '',
           user_name: user?.name || '',
@@ -740,7 +740,7 @@ const VoiceInterface = ({ user }) => {
       style={{
         marginTop: '4rem',
         padding: '3rem',
-        background: 'linear-gradient(135deg, #fff 0%, #fef7f9 100%)',
+        background: 'linear-gradient(135deg, #fff 0%, #f0f9ff 100%)',
         borderRadius: '30px',
         boxShadow: 'var(--shadow-lg)',
         border: '1px solid var(--accent)',
@@ -750,7 +750,7 @@ const VoiceInterface = ({ user }) => {
       }}
     >
       <p style={{ color: 'var(--text-light)', marginBottom: '1rem' }}>
-        How would you like to interact with Janani?
+        How would you like to interact with Fizician?
       </p>
 
       {/* Mode Switcher */}
@@ -812,7 +812,7 @@ const VoiceInterface = ({ user }) => {
           display: 'flex',
           alignItems: 'center',
           gap: '0.8rem',
-          boxShadow: '0 4px 12px rgba(176, 24, 84, 0.05)',
+          boxShadow: '0 4px 12px rgba(14, 165, 233, 0.05)',
           width: '100%',
           maxWidth: '350px'
         }}>
@@ -918,7 +918,7 @@ const VoiceInterface = ({ user }) => {
             <p style={{ marginTop: '1rem', fontWeight: 'bold', color: 'var(--text-light)' }}>
               {interactionMode === 'IDLE' ? 'Tap to Speak' : ''}
               {interactionMode === 'LISTENING' ? 'Listening... Tap to Stop' : ''}
-              {interactionMode === 'SPEAKING' ? 'Janani Speaking...' : ''}
+              {interactionMode === 'SPEAKING' ? 'Fizician Speaking...' : ''}
               {interactionMode === 'PROCESSING' ? 'Thinking...' : ''}
             </p>
           </div>
@@ -1031,7 +1031,7 @@ const VoiceInterface = ({ user }) => {
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', marginBottom: '1rem' }}>
                 <Bot size={24} color="var(--primary)" />
-                <strong style={{ color: 'var(--primary)' }}>Janani AI:</strong>
+                <strong style={{ color: 'var(--primary)' }}>Fizician AI:</strong>
               </div>
               <p style={{ color: 'var(--text-dark)', lineHeight: '1.6', fontSize: '1.05rem' }}>{response}</p>
             </Motion.div>
@@ -1081,7 +1081,7 @@ const MainContent = ({ assistantRef, user }) => {
             <h2 style={{ fontSize: '3rem', marginBottom: '1rem' }}>The Knowledge Foundation</h2>
             <p style={{ maxWidth: '800px', margin: '0 auto', color: 'var(--text-light)' }}>
               We use Retreival Augmented Generation (RAG) to process vast amounts of medical expertise,
-              ensuring every mother gets scientifically accurate, simplified advice.
+              ensuring every patient gets scientifically accurate, simplified advice.
             </p>
           </div>
 
@@ -1093,7 +1093,7 @@ const MainContent = ({ assistantRef, user }) => {
             <FeatureCard
               icon={BookOpen}
               title="Expert Knowledge Base"
-              desc="Fed with data from MBBS, MS, MD textbooks and pregnancy research papers for high reliability."
+              desc="Fed with data from MBBS, MS, MD textbooks and medical research papers for high reliability."
               delay={0.1}
             />
             <FeatureCard
@@ -1123,7 +1123,7 @@ const MainContent = ({ assistantRef, user }) => {
             <FeatureCard
               icon={Users}
               title="Low-Literate Friendly"
-              desc="Eliminating manual text input; pure voice-powered interaction for rural accessibility."
+              desc="Eliminating manual text input; pure voice-powered interaction for accessibility."
               delay={0.6}
             />
           </div>
@@ -1172,7 +1172,7 @@ const ContactModal = ({ onClose, onProceed, loading, user, selectedLanguage }) =
       }
     } catch (error) {
       console.error("Error calling RAG service for support:", error);
-      setSupportResponse("Could not connect to the Janani AI service.");
+      setSupportResponse("Could not connect to the Fizician AI service.");
     } finally {
       setIsSupportLoading(false);
     }
@@ -1218,7 +1218,7 @@ const ContactModal = ({ onClose, onProceed, loading, user, selectedLanguage }) =
             <div style={{ width: '48px', height: '48px', background: 'var(--accent)', borderRadius: '12px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
               <Users color="var(--primary)" size={24} />
             </div>
-            <h2 style={{ margin: 0, color: 'var(--text-dark)', fontSize: '1.5rem' }}>Janani Support</h2>
+            <h2 style={{ margin: 0, color: 'var(--text-dark)', fontSize: '1.5rem' }}>Fizician Support</h2>
           </div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8' }}>
             <X size={24} />
@@ -1240,7 +1240,7 @@ const ContactModal = ({ onClose, onProceed, loading, user, selectedLanguage }) =
             </div>
           ) : (
             <p style={{ color: '#64748b', textAlign: 'center', margin: '2rem 0' }}>
-              How can we help you today? Type your query below and Janani AI will assist you using her medical knowledge.
+              How can we help you today? Type your query below and Fizician AI will assist you using her medical knowledge.
             </p>
           )}
         </div>
@@ -1323,10 +1323,10 @@ const Footer = ({ user }) => (
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
             <Heart color="white" size={24} fill="white" />
-            <span style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>Janani</span>
+            <span style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>Fizician</span>
           </div>
           <p style={{ opacity: 0.8, fontSize: '0.9rem' }}>
-            Empowering Rural Women with RAG-Based Medical Intelligence
+            Empowering Everyone with RAG-Based Medical Intelligence
           </p>
         </div>
         <div>
@@ -1348,7 +1348,7 @@ const Footer = ({ user }) => (
         </div>
       </div>
       <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '2rem', textAlign: 'center', opacity: 0.6, fontSize: '0.8rem' }}>
-        © 2026 MatriCare AI. Hackathon Finalist Entry.
+        © 2026 Fizician AI. Hackathon Finalist Entry.
       </div>
     </div>
   </footer>
@@ -1388,7 +1388,7 @@ const ChatbotButton = ({ isVisible }) => {
               display: 'flex',
               justifyContent: 'center',
               alignItems: 'center',
-              boxShadow: '0 10px 30px rgba(176, 24, 84, 0.4)',
+              boxShadow: '0 10px 30px rgba(14, 165, 233, 0.4)',
               color: 'white'
             }}
           >

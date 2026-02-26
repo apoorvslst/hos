@@ -149,7 +149,7 @@ const Auth = ({ onClose, onAuthSuccess }) => {
                     maxWidth: '480px',
                     borderRadius: '40px',
                     padding: '3rem',
-                    boxShadow: '0 25px 50px -12px rgba(176, 24, 84, 0.25)',
+                    boxShadow: '0 25px 50px -12px rgba(14, 165, 233, 0.25)',
                     position: 'relative',
                     overflow: 'hidden',
                     border: '1px solid rgba(255, 255, 255, 0.5)'
@@ -161,7 +161,7 @@ const Auth = ({ onClose, onAuthSuccess }) => {
                         position: 'absolute',
                         top: '1.5rem',
                         right: '1.5rem',
-                        background: 'rgba(176, 24, 84, 0.05)',
+                        background: 'rgba(14, 165, 233, 0.05)',
                         border: 'none',
                         width: '36px',
                         height: '36px',
@@ -195,13 +195,13 @@ const Auth = ({ onClose, onAuthSuccess }) => {
                                     <div style={{ background: 'var(--primary)', padding: '0.6rem', borderRadius: '15px' }}>
                                         <Heart color="white" size={32} fill="white" />
                                     </div>
-                                    <span style={{ fontSize: '2.2rem', fontWeight: '800', color: 'var(--primary)', fontFamily: 'Outfit', letterSpacing: '-0.02em' }}>Janani</span>
+                                    <span style={{ fontSize: '2.2rem', fontWeight: '800', color: 'var(--primary)', fontFamily: 'Outfit', letterSpacing: '-0.02em' }}>Fizician</span>
                                 </motion.div>
                                 <h2 style={{ fontSize: '1.6rem', fontWeight: '700', color: 'var(--text-dark)', marginBottom: '0.5rem' }}>
                                     {isLogin ? 'Welcome Back' : 'Get Started'}
                                 </h2>
                                 <p style={{ color: 'var(--text-light)', fontSize: '0.95rem' }}>
-                                    {isLogin ? 'Sign in to access your health dashboard' : 'Join us for a safer pregnancy journey'}
+                                    {isLogin ? 'Sign in to access your health dashboard' : 'Join us for a healthier journey'}
                                 </p>
                             </div>
 
@@ -225,7 +225,7 @@ const Auth = ({ onClose, onAuthSuccess }) => {
                                         fontWeight: '700',
                                         cursor: 'pointer',
                                         transition: 'all 0.3s ease',
-                                        boxShadow: authMethod === 'email' ? '0 4px 15px rgba(176, 24, 84, 0.1)' : 'none'
+                                        boxShadow: authMethod === 'email' ? '0 4px 15px rgba(14, 165, 233, 0.1)' : 'none'
                                     }}
                                 >
                                     Email
@@ -242,7 +242,7 @@ const Auth = ({ onClose, onAuthSuccess }) => {
                                         fontWeight: '700',
                                         cursor: 'pointer',
                                         transition: 'all 0.3s ease',
-                                        boxShadow: authMethod === 'phone' ? '0 4px 15px rgba(176, 24, 84, 0.1)' : 'none'
+                                        boxShadow: authMethod === 'phone' ? '0 4px 15px rgba(14, 165, 233, 0.1)' : 'none'
                                     }}
                                 >
                                     Phone
@@ -362,7 +362,7 @@ const Auth = ({ onClose, onAuthSuccess }) => {
                                         border: 'none',
                                         fontWeight: '700',
                                         cursor: 'pointer',
-                                        boxShadow: '0 10px 20px rgba(176, 24, 84, 0.2)',
+                                        boxShadow: '0 10px 20px rgba(14, 165, 233, 0.2)',
                                         transition: 'all 0.3s'
                                     }}
                                 >
@@ -415,7 +415,7 @@ const Auth = ({ onClose, onAuthSuccess }) => {
                                     Tell us about yourself
                                 </h2>
                                 <p style={{ color: 'var(--text-light)', fontSize: '0.95rem' }}>
-                                    This helps Janani provide accurate medical advice.
+                                    This helps Fizician provide accurate medical advice.
                                 </p>
                             </div>
 
@@ -497,7 +497,7 @@ const Auth = ({ onClose, onAuthSuccess }) => {
                                         border: 'none',
                                         fontWeight: '700',
                                         cursor: 'pointer',
-                                        boxShadow: '0 10px 20px rgba(176, 24, 84, 0.2)',
+                                        boxShadow: '0 10px 20px rgba(14, 165, 233, 0.2)',
                                         transition: 'all 0.3s'
                                     }}
                                 >

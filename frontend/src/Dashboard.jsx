@@ -123,7 +123,7 @@ const Dashboard = ({ user, onBack, onEmergencyCall }) => {
                         <p style={{ color: 'var(--text-light)', fontSize: '1.1rem', margin: '0.3rem 0 0' }}>
                             {statsData.totalInteractions > 0
                                 ? `${statsData.totalInteractions} conversations tracked • Week ${currentWeek}`
-                                : `Janani is tracking your Week ${currentWeek} journey`}
+                                : `Fizician is tracking your Week ${currentWeek} journey`}
                         </p>
                     </div>
                     <button onClick={onBack} className="btn-primary" style={{ background: 'transparent', border: '2px solid var(--primary)', color: 'var(--primary)', padding: '0.7rem 1.5rem' }}>
@@ -155,7 +155,7 @@ const Dashboard = ({ user, onBack, onEmergencyCall }) => {
                         {/* Pregnancy Progress */}
                         <Motion.div whileHover={{ y: -3 }} style={card}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                                <div style={{ background: '#fce4ec', width: '48px', height: '48px', borderRadius: '14px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}><Baby color="var(--primary)" size={26} /></div>
+                                <div style={{ background: '#E0F2FE', width: '48px', height: '48px', borderRadius: '14px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}><Baby color="var(--primary)" size={26} /></div>
                                 <div style={{ textAlign: 'right' }}>
                                     <span style={badge('var(--primary)')}>Week {currentWeek}</span>
                                     <small style={{ display: 'block', color: '#94a3b8', marginTop: '0.3rem' }}>Trimester {trimester}</small>
@@ -193,7 +193,7 @@ const Dashboard = ({ user, onBack, onEmergencyCall }) => {
                         <div style={card}>
                             <h3 style={{ fontSize: '1.3rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Heart color="#ef4444" size={22} /> Symptom Tracker</h3>
                             {symptoms.length === 0 ? (
-                                <p style={{ color: '#94a3b8', textAlign: 'center', padding: '2rem 0' }}>No symptoms recorded yet. Talk to Janani!</p>
+                                <p style={{ color: '#94a3b8', textAlign: 'center', padding: '2rem 0' }}>No symptoms recorded yet. Talk to Fizician!</p>
                             ) : (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', maxHeight: '280px', overflowY: 'auto' }}>
                                     {symptoms.slice(0, 8).map((s, i) => (
@@ -269,7 +269,7 @@ const Dashboard = ({ user, onBack, onEmergencyCall }) => {
                             </div>
 
                             {recentInteractions.length === 0 ? (
-                                <p style={{ color: '#94a3b8', textAlign: 'center', padding: '1.5rem 0' }}>No conversations yet. Start chatting with Janani!</p>
+                                <p style={{ color: '#94a3b8', textAlign: 'center', padding: '1.5rem 0' }}>No conversations yet. Start chatting with Fizician!</p>
                             ) : (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', maxHeight: showHistory ? 'none' : '300px', overflowY: 'auto' }}>
                                     {(showHistory ? chatHistory : recentInteractions.slice(0, 5)).map((item, i) => (
@@ -287,7 +287,7 @@ const Dashboard = ({ user, onBack, onEmergencyCall }) => {
                                             </div>
                                             {expandedInteraction === i && (
                                                 <Motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} style={{ marginTop: '0.8rem', borderTop: '1px solid #e2e8f0', paddingTop: '0.8rem' }}>
-                                                    <p style={{ margin: '0 0 0.5rem', color: '#10b981' }}>Janani: {item.aiReply || item.aiReplyEnglish || 'No reply recorded'}</p>
+                                                    <p style={{ margin: '0 0 0.5rem', color: '#10b981' }}>Fizician: {item.aiReply || item.aiReplyEnglish || 'No reply recorded'}</p>
                                                     {(item.symptoms || []).length > 0 && <p style={{ margin: 0, fontSize: '0.85rem' }}>Symptoms: {item.symptoms.map(s => s.name).join(', ')}</p>}
                                                     {item.aiSummary && <p style={{ margin: '0.3rem 0 0', fontSize: '0.85rem', color: '#8b5cf6' }}>Summary: {item.aiSummary}</p>}
                                                 </Motion.div>
