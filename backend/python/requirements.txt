@@ -1,0 +1,14 @@
+fastapi
+uvicorn
+pydantic
+motor
+httpx
+langchain
+langchain-groq
+langchain-community
+langchain-chroma
+langchain-core
+fastembed
+chromadb
+python-dotenv
+pymongo

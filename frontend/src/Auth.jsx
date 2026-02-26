@@ -16,7 +16,7 @@ const Auth = ({ onClose, onAuthSuccess }) => {
     const [profileData, setProfileData] = useState({
         allergies: '',
         history: '',
-        pregnancyDate: ''
+        dateOfBirth: ''
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -88,23 +88,24 @@ const Auth = ({ onClose, onAuthSuccess }) => {
         e.preventDefault();
         setLoading(true);
 
-        const calculatePregnancyWeek = (dateStr) => {
+        const calculateAge = (dateStr) => {
             if (!dateStr) return "Unknown";
-            const start = new Date(dateStr);
+            const birth = new Date(dateStr);
             const now = new Date();
-            const diffDays = Math.floor((now - start) / (1000 * 60 * 60 * 24));
-            const weeks = Math.floor(diffDays / 7);
-            return weeks > 0 ? weeks : 0;
+            let age = now.getFullYear() - birth.getFullYear();
+            const m = now.getMonth() - birth.getMonth();
+            if (m < 0 || (m === 0 && now.getDate() < birth.getDate())) age--;
+            return age > 0 ? age : 0;
         };
 
-        const week = calculatePregnancyWeek(profileData.pregnancyDate);
-        const profileString = `Patient Case: ${week} weeks pregnant (LMP: ${profileData.pregnancyDate}). Allergies: ${profileData.allergies || 'None'}. Medical History: ${profileData.history || 'No significant history'}.`;
+        const age = calculateAge(profileData.dateOfBirth);
+        const profileString = `Patient: Age ${age}. Allergies: ${profileData.allergies || 'None'}. Medical History: ${profileData.history || 'No significant history'}.`;
 
         const updatedUser = {
             ...formData.currentAuthUser,
             patientProfile: profileString,
-            pregnancyWeek: week,
-            pregnancyDate: profileData.pregnancyDate,
+            age: age,
+            dateOfBirth: profileData.dateOfBirth,
             allergies: profileData.allergies,
             medicalHistory: profileData.history
         };
@@ -421,12 +422,12 @@ const Auth = ({ onClose, onAuthSuccess }) => {
 
                             <form onSubmit={handleProfileSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                                    <label style={{ fontSize: '0.9rem', fontWeight: '700', color: 'var(--text-dark)', marginLeft: '0.5rem' }}>Pregnancy Start Date (LMP)</label>
+                                    <label style={{ fontSize: '0.9rem', fontWeight: '700', color: 'var(--text-dark)', marginLeft: '0.5rem' }}>Date of Birth</label>
                                     <input
                                         type="date"
-                                        name="pregnancyDate"
+                                        name="dateOfBirth"
                                         required
-                                        value={profileData.pregnancyDate}
+                                        value={profileData.dateOfBirth}
                                         onChange={handleProfileChange}
                                         style={{
                                             width: '100%',

@@ -5,11 +5,12 @@ if sys.stdout.encoding and sys.stdout.encoding.lower() != 'utf-8':
 if sys.stderr.encoding and sys.stderr.encoding.lower() != 'utf-8':
     sys.stderr.reconfigure(encoding='utf-8', errors='replace')
 
+import asyncio
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional
-from rag_service import PregnancyRAGService
+from rag_service import MedicalRAGService
 from langchain_core.messages import HumanMessage, AIMessage
 from dotenv import load_dotenv
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -17,6 +18,10 @@ from datetime import datetime
 from langchain_groq import ChatGroq
 import httpx
 import json
+
+# ─── Per-user conversation & ingestion ──────────────────────────────────────
+import conversation_store
+from ingest import ingest_conversation
 
 from pathlib import Path
 # Load .env from parent dir (backend/) or current dir
@@ -28,7 +33,7 @@ else:
 
 SARVAM_API_KEY = os.getenv("SARVAM_API_KEY")
 
-app = FastAPI(title="Janani Voice RAG API")
+app = FastAPI(title="Fizician Voice RAG API")
 
 # Enable CORS
 app.add_middleware(
@@ -62,12 +67,22 @@ class ChatMessage(BaseModel):
 class QueryRequest(BaseModel):
     query: str
     language_code: str = "hi-IN"
-    patient_data: str = "Mother is 2nd week of pregnancy, general wellness query."
+    patient_data: str = "General health wellness query."
     history: List[ChatMessage] = []
     user_phone: Optional[str] = None
     user_email: Optional[str] = None
     user_name:  Optional[str] = None
-    source: str = "website"  # "website" | "voice_call"
+    source: str = "website"  # "website" | "voice_call" | "support_chat"
+
+
+# ─── User ID Resolution ─────────────────────────────────────────────────────
+def _resolve_user_id(request: QueryRequest) -> str:
+    """Resolve user identity: email > phone > anonymous."""
+    if request.user_email and request.user_email.strip():
+        return request.user_email.strip().lower()
+    if request.user_phone and request.user_phone.strip():
+        return request.user_phone.strip()
+    return "anonymous"
 
 
 # ─── Sarvam Translate (with Groq fallback) ───────────────────────────────────
@@ -138,7 +153,7 @@ async def translate_text(text: str, target_lang: str, source_lang: str = "en-IN"
 async def extract_clinical_data(transcript: str, medical_context: str = "") -> dict:
     """Extract structured clinical data using Groq."""
     try:
-        prompt = f"""Extract clinical data from this maternal health conversation.
+        prompt = f"""Extract clinical data from this health conversation.
 
 TRANSCRIPT: {transcript}
 CONTEXT: {medical_context}
@@ -149,7 +164,6 @@ Return ONLY valid JSON (no markdown):
   "medications": ["list of medications/supplements"],
   "relief_noted": true/false,
   "relief_details": "brief detail",
-  "fetal_movement": "Yes/No/Unknown",
   "severity": 1-10,
   "summary": "one sentence clinical summary"
 }}"""
@@ -164,12 +178,12 @@ Return ONLY valid JSON (no markdown):
         return {
             "symptoms": [], "medications": [],
             "relief_noted": False, "relief_details": "",
-            "fetal_movement": "Unknown", "severity": 5,
+            "severity": 5,
             "summary": transcript[:200]
         }
 
 
-# ─── MongoDB Save ────────────────────────────────────────────────────────────
+# ─── MongoDB Save (healthlogs — existing behavior) ──────────────────────────
 async def save_to_mongodb(request: QueryRequest, eng_query: str, eng_answer: str, native_answer: str, clinical: dict):
     user_identifier = request.user_phone or request.user_email or "anonymous"
     filter_query = (
@@ -187,7 +201,6 @@ async def save_to_mongodb(request: QueryRequest, eng_query: str, eng_answer: str
         "symptoms": clinical.get("symptoms", []),
         "medications": clinical.get("medications", []),
         "relief_noted": clinical.get("relief_noted", False),
-        "fetal_movement_status": clinical.get("fetal_movement", "Unknown"),
         "severity_score": clinical.get("severity", 5),
         "ai_summary": clinical.get("summary", ""),
         "_source": request.source,
@@ -207,22 +220,45 @@ async def save_to_mongodb(request: QueryRequest, eng_query: str, eng_answer: str
     print(f"💾 Saved for {user_identifier} | symptoms: {len(clinical.get('symptoms', []))}")
 
 
-# ─── /ask Endpoint ───────────────────────────────────────────────────────────
+# ─── Async Ingestion (fire-and-forget) ───────────────────────────────────────
+async def _async_ingest(user_id: str, turn_text: str):
+    """Run conversation ingestion in a background thread (it's CPU-bound)."""
+    try:
+        loop = asyncio.get_event_loop()
+        await loop.run_in_executor(None, ingest_conversation, user_id, turn_text)
+    except Exception as e:
+        print(f"⚠️ Async ingestion error: {e}")
+
+
+# ─── /ask Endpoint (Dynamic Per-User Pipeline) ──────────────────────────────
 @app.post("/ask")
 async def ask(request: QueryRequest):
     try:
         if service is None:
             raise HTTPException(status_code=503, detail="AI service is still initializing. Please try again in 30 seconds.")
 
-        print(f"\n📥 /ask | lang={request.language_code} | query='{request.query[:60]}'")
+        # 0. Resolve user identity
+        user_id = _resolve_user_id(request)
+        print(f"\n📥 /ask | user={user_id} | lang={request.language_code} | query='{request.query[:60]}'")
 
-        # 1. Translate query to English for RAG
+        # 1. Fetch per-user conversation context from MongoDB
+        conv_context = ""
+        turn_count = 0
+        if user_id != "anonymous":
+            try:
+                conv_context = await conversation_store.get_recent_context(user_id, limit=10)
+                turn_count = await conversation_store.get_session_turn_count(user_id)
+                print(f"📋 User context: {len(conv_context)} chars | session turns: {turn_count}")
+            except Exception as e:
+                print(f"⚠️ Context fetch error: {e}")
+
+        # 2. Translate query to English for RAG
         english_query = request.query
         if not request.language_code.lower().startswith("en"):
             english_query = await translate_text_indic(request.query, request.language_code, "en-IN")
             print(f"✅ Query in English: '{english_query[:80]}'")
 
-        # 2. Build chat history
+        # 3. Build chat history from request
         history_msgs = []
         for msg in (request.history or [])[-5:]:
             if msg.role == "user":
@@ -230,41 +266,66 @@ async def ask(request: QueryRequest):
             else:
                 history_msgs.append(AIMessage(content=msg.content))
 
-        # 3. RAG (English in → English out)
-        print("🧠 Querying RAG...")
+        # 4. MERGED RAG (static knowledge + per-user context + conversation history)
+        print("🧠 Querying Merged RAG...")
         english_answer = ""
-        for chunk in service.ask_stream(english_query, request.patient_data, history_msgs):
+        for chunk in service.ask_stream(
+            query=english_query,
+            patient_data=request.patient_data,
+            chat_history=history_msgs,
+            user_id=user_id,
+            conversation_context=conv_context,
+            turn_count=turn_count
+        ):
             english_answer += chunk
         english_answer = english_answer.strip()
         print(f"✅ RAG answer: '{english_answer[:80]}...'")
 
-        # 4. Translate RAG answer to user's language
+        # 5. Translate RAG answer to user's language
         final_answer = english_answer
         if not request.language_code.lower().startswith("en"):
             final_answer = await translate_text_indic(english_answer, "en-IN", request.language_code)
             print(f"✅ Native answer: '{final_answer[:80]}...'")
 
-        # 5. Clinical extraction (best-effort)
+        # 6. Clinical extraction (best-effort)
         clinical_data = {
             "symptoms": [], "medications": [], "relief_noted": False,
-            "relief_details": "", "fetal_movement": "Unknown", "severity": 5, "summary": ""
+            "relief_details": "", "severity": 5, "summary": ""
         }
         try:
             clinical_data = await extract_clinical_data(english_query, english_answer)
         except Exception as e:
             print(f"⚠️ Clinical extraction skipped: {e}")
 
-        # 6. Save to MongoDB (best-effort)
+        # 7. Save turn to per-user conversation store (for future context)
+        if user_id != "anonymous":
+            try:
+                await conversation_store.save_turn(user_id, english_query, english_answer, clinical_data)
+            except Exception as e:
+                print(f"⚠️ Conversation store save skipped: {e}")
+
+        # 8. Save to healthlogs (existing behavior — untouched)
         try:
             await save_to_mongodb(request, english_query, english_answer, final_answer, clinical_data)
         except Exception as e:
             print(f"⚠️ MongoDB save skipped: {e}")
 
+        # 9. Async ingest conversation turn into per-user vector DB (fire-and-forget)
+        if user_id != "anonymous":
+            turn_text = f"Patient: {english_query}\nDoctor: {english_answer}"
+            asyncio.create_task(_async_ingest(user_id, turn_text))
+
+        # 10. Determine if follow-up is still active
+        new_turn_count = turn_count + 1
+        follow_up_active = new_turn_count < 15
+
         return {
-            "english_query":   english_query,
-            "english_answer":  english_answer,
+            "english_query":    english_query,
+            "english_answer":   english_answer,
             "localized_answer": final_answer,
             "verified_language": request.language_code,
+            "turn_count":       new_turn_count,
+            "follow_up_active": follow_up_active,
             "status": "success"
         }
 
@@ -314,9 +375,9 @@ async def startup():
 
     # 3. RAG Service (heaviest — downloads model + ingests health_book.txt)
     try:
-        print("🧠 Initializing RAG Service (this may take 1-2 minutes on first run)...")
-        service = PregnancyRAGService()
-        print("✅ RAG Service initialized")
+        print("🧠 Initializing Medical RAG Service (this may take 1-2 minutes on first run)...")
+        service = MedicalRAGService()
+        print("✅ Medical RAG Service initialized")
     except Exception as e:
         print(f"❌ RAG Service init failed: {e}")
         import traceback; traceback.print_exc()

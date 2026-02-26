@@ -7,7 +7,11 @@ __pycache__/
 # ─── Environment ───
 .env
 .env.local
-
+.venv/
+venv/
+env/
+__pycache__/
+*.pyc
 # ─── Build Output ───
 dist/
 build/

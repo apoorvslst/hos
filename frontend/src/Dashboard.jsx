@@ -37,20 +37,17 @@ const Dashboard = ({ user, onBack, onEmergencyCall }) => {
     // ─── User Identifier ────────────────────────────────────────────────
     const identifier = user?.phoneNumber || user?.email || '';
 
-    // ─── Pregnancy Calculations ─────────────────────────────────────────
-    const pregnancyDate = user?.pregnancyDate || '';
-    const currentWeek = (() => {
-        if (!pregnancyDate) return 0;
-        const diff = new Date() - new Date(pregnancyDate);
-        return Math.floor(diff / (1000 * 60 * 60 * 24 * 7));
+    // ─── Patient Info ────────────────────────────────────────────────
+    const dateOfBirth = user?.dateOfBirth || '';
+    const patientAge = (() => {
+        if (!dateOfBirth) return 0;
+        const birth = new Date(dateOfBirth);
+        const now = new Date();
+        let age = now.getFullYear() - birth.getFullYear();
+        const m = now.getMonth() - birth.getMonth();
+        if (m < 0 || (m === 0 && now.getDate() < birth.getDate())) age--;
+        return age > 0 ? age : 0;
     })();
-    const progressPercent = Math.min((currentWeek / 40) * 100, 100);
-    const trimester = currentWeek <= 12 ? 1 : (currentWeek <= 26 ? 2 : 3);
-    const getBabySize = (w) => {
-        if (w < 5) return "Sesame Seed"; if (w < 10) return "Grape"; if (w < 15) return "Lemon";
-        if (w < 20) return "Banana"; if (w < 25) return "Corn Ear"; if (w < 30) return "Cabbage";
-        if (w < 35) return "Pineapple"; return "Watermelon";
-    };
 
     // ─── Fetch Dashboard Data ───────────────────────────────────────────
     useEffect(() => {
@@ -119,11 +116,11 @@ const Dashboard = ({ user, onBack, onEmergencyCall }) => {
                 {/* ─── Header ────────────────────────────────────────── */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
                     <div>
-                        <h1 style={{ fontSize: '2.2rem', color: 'var(--text-dark)', margin: 0 }}>Namaste, {user?.name || 'Mataji'}!</h1>
+                        <h1 style={{ fontSize: '2.2rem', color: 'var(--text-dark)', margin: 0 }}>Namaste, {user?.name || 'Patient'}!</h1>
                         <p style={{ color: 'var(--text-light)', fontSize: '1.1rem', margin: '0.3rem 0 0' }}>
                             {statsData.totalInteractions > 0
-                                ? `${statsData.totalInteractions} conversations tracked • Week ${currentWeek}`
-                                : `Fizician is tracking your Week ${currentWeek} journey`}
+                                ? `${statsData.totalInteractions} conversations tracked`
+                                : `Fizician is ready to assist you`}
                         </p>
                     </div>
                     <button onClick={onBack} className="btn-primary" style={{ background: 'transparent', border: '2px solid var(--primary)', color: 'var(--primary)', padding: '0.7rem 1.5rem' }}>
@@ -152,23 +149,23 @@ const Dashboard = ({ user, onBack, onEmergencyCall }) => {
                 {activeTab === 'overview' && (
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '1.5rem' }}>
 
-                        {/* Pregnancy Progress */}
+                        {/* Patient Health Profile */}
                         <Motion.div whileHover={{ y: -3 }} style={card}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                                <div style={{ background: '#E0F2FE', width: '48px', height: '48px', borderRadius: '14px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}><Baby color="var(--primary)" size={26} /></div>
+                                <div style={{ background: '#E0F2FE', width: '48px', height: '48px', borderRadius: '14px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}><Heart color="var(--primary)" size={26} /></div>
                                 <div style={{ textAlign: 'right' }}>
-                                    <span style={badge('var(--primary)')}>Week {currentWeek}</span>
-                                    <small style={{ display: 'block', color: '#94a3b8', marginTop: '0.3rem' }}>Trimester {trimester}</small>
+                                    <span style={badge('var(--primary)')}>{patientAge > 0 ? `Age ${patientAge}` : 'Profile'}</span>
                                 </div>
                             </div>
-                            <h3 style={{ fontSize: '1.3rem', marginBottom: '0.8rem' }}>Pregnancy Progress</h3>
-                            <div style={{ height: '10px', background: '#f1f5f9', borderRadius: '10px', overflow: 'hidden', marginBottom: '1rem' }}>
-                                <Motion.div initial={{ width: 0 }} animate={{ width: `${progressPercent}%` }} transition={{ duration: 1.5 }}
-                                    style={{ height: '100%', background: 'linear-gradient(90deg, var(--primary), var(--secondary))' }} />
+                            <h3 style={{ fontSize: '1.3rem', marginBottom: '0.8rem' }}>Health Profile</h3>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                                <p style={{ color: 'var(--text-light)', fontSize: '0.95rem', margin: 0 }}>
+                                    <b style={{ color: 'var(--primary)' }}>Allergies:</b> {user?.allergies || 'None reported'}
+                                </p>
+                                <p style={{ color: 'var(--text-light)', fontSize: '0.95rem', margin: 0 }}>
+                                    <b style={{ color: 'var(--primary)' }}>Medical History:</b> {user?.medicalHistory || 'No significant history'}
+                                </p>
                             </div>
-                            <p style={{ color: 'var(--text-light)', fontSize: '0.95rem' }}>
-                                Baby is size of a <b style={{ color: 'var(--primary)' }}>{getBabySize(currentWeek)}</b> • <b style={{ color: 'var(--primary)' }}>{Math.max(0, 40 - currentWeek)}</b> weeks to go!
-                            </p>
                         </Motion.div>
 
                         {/* Stats Cards */}
